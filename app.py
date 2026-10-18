@@ -44,4 +44,4 @@ with tab2:
         
     st.markdown("---")
     st.markdown("### 2️⃣ TIGER 미국S&P500 (코어 자산)")
-    st.write("- **특징:** 지수형 적
+    st.write("- **특징:** 지수형 전략")

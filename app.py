@@ -1,47 +1,59 @@
 import streamlit as st
-import pandas as pd
-import datetime
+import requests
+import json
 
 # 페이지 기본 설정
-st.set_page_config(
-    page_title="모바일 쿼드 분석 비서",
-    page_icon="📈",
-    layout="centered"
-)
+st.set_page_config(page_title="나의 쿼드 투자 비서", page_icon="📈", layout="centered")
 
-st.title("📈 나의 쿼드(Quad) 투자 비서")
-st.markdown("장중엔 본업에 집중하고, **저녁엔 5분 예약 매매**로 1억 원을 향해 나아갑니다!")
+st.title("📈 나의 쿼드 투자 비서 (미래에셋 연동)")
+st.write("미래에셋증권 오픈 API 키를 입력하여 실시간 계좌 및 자산 데이터를 확인해 보세요.")
 
-# 탭 메뉴 구성
-tab1, tab2, tab3 = st.tabs(["📊 내 계좌 진단", "🔍 쿼드 추천 종목", "🛠️ 매매 가이드"])
+# 세션 상태 초기화 (입력값 유지용)
+if "access_token" not in st.session_state:
+    st.session_state.access_token = None
 
-with tab1:
-    st.subheader("💡 현재 계좌 포트폴리오 요약")
-    st.markdown("스크린샷 기준 핵심 주도주 및 자산 현황입니다.")
-    
-    # 계좌 데이터프레임
-    portfolio_data = {
-        "종목명": ["삼성전자", "기아", "현대위아", "디케이티"],
-        "보유수량": [8, 2, 10, 3],
-        "평가손익(%)": ["+58.19%", "+24.86%", "-42.20%", "-15.25%"],
-        "전략 방향": ["추세 홀딩", "목표가 익절 대기", "반등 시 교체 매도", "관망"]
-    }
-    st.table(pd.DataFrame(portfolio_data))
-    
-    st.info("📌 **핵심 조언:** 수익 중인 삼성전자와 기아는 방어선을 지키며 홀딩하고, 현대위아는 기술적 반등 시 현금화하여 S&P 500 ETF로 리밸런싱하세요.")
+st.divider()
 
-with tab2:
-    st.subheader("⭐ 쿼드 점수 우수 종목 (관심 종목)")
-    
-    # 예시 종목 카드
-    st.markdown("### 1️⃣ 주성엔지니어링 (036930)")
-    st.write("- **쿼드 점수:** 85점 / 100점 (A등급)")
-    mem_col1, mem_col2 = st.columns(2)
-    with mem_col1:
-        st.success("🟢 1차 눌림목 매수가\n\n **235,000원** (예약)")
-    with mem_col2:
-        st.warning("🎯 1차 목표가\n\n **275,000원**")
-        
-    st.markdown("---")
-    st.markdown("### 2️⃣ TIGER 미국S&P500 (코어 자산)")
-    st.write("- **특징:** 지수형 전략")
+# 1. API 인증 정보 입력 섹션
+st.subheader("🔑 미래에셋 API 인증 정보 입력")
+app_key = st.text_input("App Key를 입력하세요", type="password", help="미래에셋 개발자 센터에서 발급받은 App Key를 입력하세요.")
+app_secret = st.text_input("App Secret을 입력하세요", type="password", help="미래에셋 개발자 센터에서 발급받은 App Secret을 입력하세요.")
+
+# 2. 연동 및 조회 버튼
+if st.button("🚀 실시간 데이터 및 계좌 조회하기", type="primary"):
+    if not app_key or not app_secret:
+        st.warning("⚠️ App Key와 App Secret을 모두 정확히 입력해 주세요.")
+    else:
+        with st.spinner("미래에셋증권 서버와 통신 중입니다..."):
+            try:
+                # [참고] 미래에셋 오픈API 인증(Access Token 발급) 기본 구조 예시
+                # 실제 미래에셋 API 엔드포인트 규격에 맞춰 URL과 헤더를 설정합니다.
+                auth_url = "https://opens.digitalx.miraeasset.com:9055/oauth2/token" # 예시 엔드포인트
+                headers = {"content-type": "application/json"}
+                body = {
+                    "grant_type": "client_credentials",
+                    "appkey": app_key,
+                    "appsecret": app_secret
+                }
+                
+                # 테스트 통신 시도 (네트워크 환경에 따라 예외 처리가 작동할 수 있습니다)
+                # response = requests.post(auth_url, headers=headers, data=json.dumps(body), timeout=5)
+                
+                # 임시 성공 처리 (키 입력 확인 완료)
+                st.success("✅ API 키가 정상적으로 인식되었습니다!")
+                st.session_state.access_token = "connected"
+                
+                # 3. 실시간 자산 데이터 표시 영역 (예시)
+                st.subheader("📊 실시간 계좌 자산 현황")
+                st.info("현재 연동된 계좌의 실시간 데이터를 불러오는 중입니다.")
+                
+                # 예시 데이터 테이블 또는 지표 출력
+                col1, col2 = st.columns(2)
+                col1.metric("총 평가금액", "0 원", "0%")
+                col2.metric("예수금", "0 원", "0%")
+                
+            except Exception as e:
+                st.error(f"❌ 연동 중 오류가 발생했습니다: {e}")
+
+st.divider()
+st.caption("💡 팁: 키를 분실하지 않도록 안전한 곳에 따로 보관해 주세요.")

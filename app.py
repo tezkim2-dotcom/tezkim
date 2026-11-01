@@ -52,7 +52,7 @@ if app_key and app_secret:
                     action_desc = "지금은 위험합니다! 매수를 보류하거나 이익 실현 후 관망을 권장합니다."
                 
                 st.markdown(f"### 📢 최종 매매 신호: {signal}")
-                st.info(f"**행동 지침:** {action_desc} (종합 점수: {avg_score:.1f점)")
+                st.info(f"**행동 지침:** {action_desc} (종합 점수: {avg_score:.1f}점)")
                 
                 # 4대 쿼드 지표 요약
                 col1, col2, col3, col4 = st.columns(4)

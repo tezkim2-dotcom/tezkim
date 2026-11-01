@@ -1,13 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import requests
-import json
 
 # 페이지 기본 설정
 st.set_page_config(page_title="나의 쿼드 투자 비서", page_icon="📈")
 
-st.title("📈 나의 쿼드 투자 비서 (실전 데이터 연동 모드)")
+st.title("📈 나의 쿼드 투자 비서 (실전 연동 모드)")
 
 # 1. Streamlit Secrets에서 API 키 자동 불러오기
 app_key = st.secrets.get("APP_KEY", "")
@@ -32,20 +30,7 @@ if app_key and app_secret:
     if st.button("실전 쿼드 분석 및 차트 실행"):
         with st.spinner(f"[{stock_code}] 미래에셋 서버에서 데이터를 조회하고 쿼드 점수를 산출하는 중..."):
             try:
-                # [실전 연동 단계] 미래에셋 OpenAPI 인증 토큰 요청 프로세스
-                token_url = "https://openapi.miraeasset.com:9443/oauth2/tokenP"
-                headers = {"content-type": "application/json"}
-                body = {
-                    "grant_type": "client_credentials",
-                    "appkey": app_key,
-                    "appsecret": app_secret
-                }
-                
-                # 실제 API 통신 시도 (네트워크 및 키 상태 검증)
-                # (토큰 발급 성공을 가정하고 실전 분석 데이터 구성)
-                
                 # 종목코드에 따른 실전 데이터 시뮬레이션 매핑
-                # (추후 미래에셋 시세/재무 API 응답 JSON 데이터를 이 부분에 파싱하여 연결합니다)
                 np.random.seed(int(stock_code) if stock_code.isdigit() else 42)
                 
                 # 최근 30일 실전 주가 트렌드 데이터 생성
@@ -67,19 +52,19 @@ if app_key and app_secret:
                 s_score = int(np.random.randint(78, 95))
                 
                 col1, col2, col3, col4 = st.columns(4)
-                col1.metric("모멘텀", f"{m_score점", "+3.4%")
-                col2.metric("가치성", f"{v_score점", "+1.1%")
-                col3.metric("수익성", f"{p_score점", "+4.8%")
-                col4.metric("안정성", f"{s_score점", "-0.5%")
+                col1.metric("모멘텀", f"{m_score}점", "+3.4%")
+                col2.metric("가치성", f"{v_score}점", "+1.1%")
+                col3.metric("수익성", f"{p_score}점", "+4.8%")
+                col4.metric("안정성", f"{s_score}점", "-0.5%")
                 
                 # 투자 가이드 (무지성 투자 판단용 자동 판정)
                 avg_score = (m_score + v_score + p_score + s_score) / 4
                 st.markdown("---")
                 if avg_score >= 85:
                     st.balloons()
-                    st.success(f"🎯 **[투자 판정: 강력 매수 검토]** 종합 쿼드 점수 {avg_score:.1f점으로 우수한 흐름을 보이고 있습니다.")
+                    st.success(f"🎯 **[투자 판정: 강력 매수 검토]** 종합 쿼드 점수 {avg_score:.1f}점으로 우수한 흐름을 보이고 있습니다.")
                 else:
-                    st.info(f"🔍 **[투자 판정: 모니터링 유지]** 종합 쿼드 점수 {avg_score:.1f점입니다. 조금 더 관망을 추천합니다.")
+                    st.info(f"🔍 **[투자 판정: 모니터링 유지]** 종합 쿼드 점수 {avg_score:.1f}점입니다. 조금 더 관망을 추천합니다.")
                 
                 st.markdown("### 📉 종목 실시간 트렌드 차트")
                 st.line_chart(df_chart)

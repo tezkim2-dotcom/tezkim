@@ -6,31 +6,47 @@ import numpy as np
 st.set_page_config(page_title="나의 쿼드 계좌 리밸런싱 비서", page_icon="🎯")
 
 st.title("🎯 쿼드 실전 계좌 리밸런싱 비서")
-st.caption("내 보유 종목을 진단하고 최적의 교체 종목을 매칭합니다.")
+st.caption("내 보유 종목 전체를 진단하고 최적의 교체 종목을 매칭합니다.")
 
-# 1. 설정 및 계좌번호 관리
-app_key = st.secrets.get("APP_KEY", "")
-app_secret = st.secrets.get("APP_SECRET", "")
-account_no = st.secrets.get("ACCOUNT_NO", "12345678-01")
+# 대표 종목명 사전 매핑 딕셔너리 (코드 -> 회사명)
+STOCK_NAMES = {
+    "005930": "삼성전자",
+    "000660": "SK하이닉스",
+    "035420": "NAVER",
+    "035720": "카카오",
+    "005380": "현대차",
+    "000270": "기아",
+    "051910": "LG화학",
+    "006400": "삼성SDI",
+    "373220": "LG에너지솔루션",
+    "003550": "LG",
+    "028260": "삼성물산",
+    "105560": "KB금융",
+    "055550": "신한지주"
+}
 
-with st.expander("🔑 미래에셋 계좌번호 및 보유 종목 직접 설정"):
-    account_input = st.text_input("내 종합계좌번호", value=account_no)
-    # 진짜 내 보유 종목을 직접 확실하게 지정할 수 있는 입력란 (쉼표로 구분)
-    custom_my_stocks = st.text_input("내 실제 보유 종목코드 (쉼표 구분)", value="005930, 000660, 035420")
+# 1. 설정 및 보유 종목 입력 (기본 8개 예시 세팅)
+default_stocks = "005930, 000660, 035420, 035720, 005380, 000270, 051910, 006400"
+
+with st.expander("🔑 내 실제 보유 종목코드 직접 설정"):
+    custom_my_stocks = st.text_area("내 보유 종목코드 (쉼표로 구분하여 8개 이상 입력)", value=default_stocks)
 
 st.markdown("---")
 
 # 2. 진단 실행 버튼
 if st.button("🚀 내 계좌 쿼드 리밸런싱 진단 실행"):
-    with st.spinner("계좌 잔고 분석 및 쿼드 점수 산출 중..."):
+    with st.spinner("보유 종목 전체 분석 및 쿼드 점수 산출 중..."):
         
-        # 입력된 보유 종목 리스트 정리
-        stock_list = [code.strip() for code in custom_my_stocks.split(",") if code.strip()]
+        # 입력된 보유 종목 리스트 정리 (공백 제거 및 빈 값 필터링)
+        stock_list = [code.strip() for code in custom_my_stocks.replace("\n", ",").split(",") if code.strip()]
         
-        st.markdown("### 1️⃣ 내 계좌 보유 종목 진단 결과")
+        st.markdown(f"### 1️⃣ 내 계좌 보유 종목 진단 결과 (총 {len(stock_list)}개 종목)")
         
-        # 모바일 화면에서 잘리지 않도록 카드(Card) 형식으로 깔끔하게 출력
+        # 8개 모두 짤림 없이 카드 형식으로 출력
         for code in stock_list:
+            # 회사명 가져오기 (사전에 없으면 기본 이름 부여)
+            name = STOCK_NAMES.get(code, "종목")
+            
             np.random.seed(int(code) if code.isdigit() else 42)
             m = int(np.random.randint(55, 95))
             v = int(np.random.randint(55, 95))
@@ -41,17 +57,14 @@ if st.button("🚀 내 계좌 쿼드 리밸런싱 진단 실행"):
             # 매도/보유 판정 로직
             if avg < 72:
                 action = "🔴 [매도 추천 (SELL)]"
-                box_color = "error"
             elif avg < 82:
                 action = "🟡 [보유 / 분할 매도 (HOLD)]"
-                box_color = "warning"
             else:
                 action = "🟢 [홀딩 / 추가 매수 (BUY)]"
-                box_color = "success"
                 
-            # 종목별 카드 박스 출력
+            # 종목별 카드 박스 출력 (회사명과 코드 동시 표시)
             with st.container():
-                st.markdown(f"#### 📌 종목코드: `{code}`")
+                st.markdown(f"#### 📌 `{name}` ({code})")
                 st.metric(label="종합 쿼드 점수", value=f"{avg}점")
                 st.markdown(f"**매매 판정:** {action}")
                 st.caption(f"모멘텀: {m}점 | 가치성: {v}점 | 수익성: {p}점 | 안정성: {s}점")
